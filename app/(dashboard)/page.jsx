@@ -1,21 +1,22 @@
 "use client"
 
 import React, { useState, useEffect, useMemo } from "react";
-import DashboardLayout from "../../layout/DashboardLayout";
-import instance from "../../utils/instance";
-import { API_PATH } from "../../utils/apiPath.js";
-import LineChartLayout from "../../components/LineChart.jsx";
-import PieChartLayout from "../../components/PieChart.jsx";
-import DropDown from "../../components/DropDown.jsx";
-import DataList from "../../components/DataList.jsx";
-import { Divider, Button,Spin } from "antd";
-import AddTransModal from "../../components/AddTransModal.jsx"; 
+// Đã xóa dòng import DashboardLayout
+import instance from "@/lib/instance";
+import { API_PATH } from "@/lib/apiPath";
+import LineChartLayout from "@/components/LineChart";
+import PieChartLayout from "@/components/PieChart";
+import DropDown from "@/components/DropDown";
+import DataList from "@/components/DataList";
+import { Divider, Button, Spin } from "antd";
+import AddTransModal from "@/components/AddTransModal"; 
 
 const periodItems = [{ label: "Last 7 Days", key: "7d" }, { label: "Last Month", key: "1m" }, { label: "Last 3 Months", key: "3m" }, { label: "Last Year", key: "1y" }];
 const dataTypeItems = [{ label: "Surplus", key: "surplus" }, { label: "Income", key: "income" }, { label: "Expense", key: "expense" }];
 const summaryTypeItems = [{ label: "Daily", key: "GET_DAILY_SUMMARY" }, { label: "Add Up", key: "GET_ADD_UP_SUMMARY" }];
 
 const Home = () => {
+    // ... (Giữ nguyên phần state và hàm fetchData y hệt của bạn)
     const [transactionList,setTransactionList] = useState([]);
     const [lineChartData, setLineChartData] = useState([]);
     const [categoryData, setCategoryData] = useState({ income: [], expense: [] });
@@ -25,24 +26,16 @@ const Home = () => {
     const [summaryType, setSummaryType] = useState(summaryTypeItems[0]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     
-    const openModal = () => {
-        setIsModalVisible(true);
-    };
-
-    const closeModal = () => {
-        setIsModalVisible(false);
-    };
+    const openModal = () => setIsModalVisible(true);
+    const closeModal = () => setIsModalVisible(false);
 
     const handleAddTransaction = (values) => {
         instance.post(API_PATH.TRANSACTION.CREATE, values)
             .then((response) => {
                 setIsModalVisible(false);
-                console.log(response);
                 fetchData();
             })
-            .catch((error) => {
-                console.error("Error adding transaction:", error);
-            });
+            .catch((error) => console.error("Error adding transaction:", error));
     };  
 
     const handleDownload = () => {
@@ -69,22 +62,16 @@ const Home = () => {
                 instance.get(`${API_PATH.TRANSACTION.GET_TRANSACTION}?period=${period.key}`),
             ]);
 
-            console.log(transactionRes.data.data);
-            if (dailyRes?.data?.data) {
-                setLineChartData(dailyRes.data.data);
-            }
-            if (categoryRes?.data?.data) {
-                setCategoryData(categoryRes.data.data);
-            }
-            if (transactionRes?.data?.data) {
-                setTransactionList(transactionRes.data.data);
-            }
+            if (dailyRes?.data?.data) setLineChartData(dailyRes.data.data);
+            if (categoryRes?.data?.data) setCategoryData(categoryRes.data.data);
+            if (transactionRes?.data?.data) setTransactionList(transactionRes.data.data);
         } catch (error) {
             console.error("Error fetching chart data:", error);
         } finally {
             setLoading(false);
         }
     };
+
     useEffect(() => {
         fetchData();
     }, [period, summaryType]);
@@ -94,10 +81,7 @@ const Home = () => {
             const dateObj = new Date(item.date);
             const day = String(dateObj.getDate()).padStart(2, '0');
             const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-            return {
-                ...item,
-                date: `${day}/${month}`,
-            };
+            return { ...item, date: `${day}/${month}` };
         });
     }, [lineChartData]);
 
@@ -109,21 +93,9 @@ const Home = () => {
                     <div className="flex items-center justify-center">
                         <LineChartLayout data={formattedLineData} titles={[{ dataKey: dataType.key }]} >
                             <div className="items-center justify-end mb-4 flex gap-2">
-                                <DropDown
-                                    title={period.label}
-                                    items={periodItems}
-                                    onSelect={(key) => setPeriod(periodItems.find(item => item.key === key))}
-                                />
-                                <DropDown
-                                    title={summaryType.label}
-                                    items={summaryTypeItems}
-                                    onSelect={(key) => setSummaryType(summaryTypeItems.find(item => item.key === key))}
-                                />
-                                <DropDown
-                                    title={dataType.label}
-                                    items={dataTypeItems}
-                                    onSelect={(key) => setDataType(dataTypeItems.find(item => item.key === key))}
-                                />
+                                <DropDown title={period.label} items={periodItems} onSelect={(key) => setPeriod(periodItems.find(item => item.key === key))} />
+                                <DropDown title={summaryType.label} items={summaryTypeItems} onSelect={(key) => setSummaryType(summaryTypeItems.find(item => item.key === key))} />
+                                <DropDown title={dataType.label} items={dataTypeItems} onSelect={(key) => setDataType(dataTypeItems.find(item => item.key === key))} />
                             </div>
                         </LineChartLayout>
                     </div>

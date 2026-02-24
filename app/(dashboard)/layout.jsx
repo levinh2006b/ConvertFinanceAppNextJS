@@ -1,12 +1,15 @@
+"use client";
+
 import React, { useState, useEffect, useMemo } from 'react';
-import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
+import { useRouter, usePathname } from 'next/navigation'; // Đổi từ react-router-dom sang next/navigation
+import Link from 'next/link'; // Đổi từ react-router-dom sang next/link
 import { GlobalOutlined } from '@ant-design/icons';
 import { Layout, Menu, theme, Spin } from 'antd';
-import { Wallet, ChartArea, HandCoins, LogOut, Settings, Contact, Users, PlusCircle,MailPlus } from "lucide-react";
-import ProfilePic from "../components/ProfilePic.jsx";
-import instance from "../utils/instance";
-import {API_PATH} from "../utils/apiPath";
+import { Wallet, ChartArea, HandCoins, LogOut, Settings, Contact, Users, PlusCircle, MailPlus } from "lucide-react";
 
+import ProfilePic from "@/components/ProfilePic"; // Dùng @/
+import instance from "@/lib/instance"; // Chuyển từ utils sang lib theo cấu trúc mới
+import { API_PATH } from "@/lib/apiPath";
 
 const { Header, Content, Sider } = Layout;
 
@@ -15,10 +18,11 @@ const topItems = [
     { key: "profile", icon: <ProfilePic />, label: <span className="pl-3">Profile</span> }
 ];
 
-const DashboardLayout = () => {
+// Thêm { children } vào tham số
+const DashboardLayout = ({ children }) => {
     const { token: { colorBgContainer } } = theme.useToken();
-    const navigate = useNavigate();
-    const location = useLocation();
+    const router = useRouter(); // Thay cho useNavigate
+    const pathname = usePathname(); // Thay cho useLocation
 
     const [groups, setGroups] = useState([]);
     const [loadingGroups, setLoadingGroups] = useState(true);
@@ -46,16 +50,8 @@ const DashboardLayout = () => {
         
         groupSubMenuItems.push(
             { type: 'divider' },
-            {
-                key: '/group/create', 
-                label: 'Create',
-                icon: <PlusCircle size={16} />,
-            },
-            {
-                key: '/group/invite',
-                label: 'Invite',
-                icon: <MailPlus size={16} />
-            }
+            { key: '/group/create', label: 'Create', icon: <PlusCircle size={16} /> },
+            { key: '/group/invite', label: 'Invite', icon: <MailPlus size={16} /> }
         );
 
         return [
@@ -63,12 +59,7 @@ const DashboardLayout = () => {
             { key: "/income", icon: <Wallet />, label: "Income" },
             { key: "/expense", icon: <HandCoins />, label: "Expense" },
             { type: 'divider' },
-            {
-                key: "/group",
-                icon: <Users />,
-                label: "Group",
-                children: loadingGroups ? null : groupSubMenuItems, 
-            },
+            { key: "/group", icon: <Users />, label: "Group", children: loadingGroups ? null : groupSubMenuItems },
             { type: 'divider' },
             { key: "/setting", icon: <Settings />, label: "Setting" },
             { key: "/contact", icon: <Contact />, label: "Our Contact" },
@@ -79,45 +70,41 @@ const DashboardLayout = () => {
     const handleMenuClick = ({ key }) => {
         if (key === '/logout') {
             localStorage.removeItem('token');
-            navigate('/login');
+            router.push('/login'); // Thay cho navigate('/login')
         } else {
-            navigate(key);
+            router.push(key); // Thay cho navigate(key)
         }
     };
 
     return (
-            <Layout style={{ minHeight: '100vh' }}>
-                <Header className='flex items-center justify-between shadow-md shadow-blue-200'>
-                    <Link to="/"><h1 className='text-xl font-semibold text-white'>Spend Wise</h1></Link>
-                    <Menu
-                        theme="dark"
-                        mode="horizontal"
-                        items={topItems}
-                        style={{ minWidth: 0, flex: 'auto', justifyContent: 'flex-end' }}
-                    />
-                </Header>
+        <Layout style={{ minHeight: '100vh' }}>
+            <Header className='flex items-center justify-between shadow-md shadow-blue-200'>
+                <Link href="/"><h1 className='text-xl font-semibold text-white'>Spend Wise</h1></Link>
+                <Menu theme="dark" mode="horizontal" items={topItems} style={{ minWidth: 0, flex: 'auto', justifyContent: 'flex-end' }} />
+            </Header>
+            <Layout>
+                <Sider width={200} style={{ background: colorBgContainer }} className="shadow-md shadow-blue-200">
+                    {loadingGroups ? (
+                        <div className="flex justify-center items-center h-full"><Spin /></div>
+                    ) : (
+                        <Menu
+                            mode="inline"
+                            selectedKeys={[pathname]} // Thay location.pathname bằng pathname
+                            defaultOpenKeys={pathname.startsWith('/group') ? ['/group'] : []}
+                            style={{ height: '100%', borderRight: 0 }}
+                            items={sidebarItems}
+                            onClick={handleMenuClick}
+                        />
+                    )}
+                </Sider>
                 <Layout>
-                    <Sider width={200} style={{ background: colorBgContainer }} className="shadow-md shadow-blue-200">
-                        {loadingGroups ? (
-                            <div className="flex justify-center items-center h-full"><Spin /></div>
-                        ) : (
-                            <Menu
-                                mode="inline"
-                                selectedKeys={[location.pathname]}
-                                defaultOpenKeys={location.pathname.startsWith('/group') ? ['/group'] : []}
-                                style={{ height: '100%', borderRight: 0 }}
-                                items={sidebarItems}
-                                onClick={handleMenuClick}
-                            />
-                        )}
-                    </Sider>
-                    <Layout className="">
-                        <Content className="shadow-md shadow-blue-200 m-8 rounded-lg p-6 bg-white">
-                            {children}
-                        </Content>
-                    </Layout>
+                    <Content className="shadow-md shadow-blue-200 m-8 rounded-lg p-6 bg-white">
+                        {/* Hiển thị nội dung các trang con tại đây */}
+                        {children}
+                    </Content>
                 </Layout>
             </Layout>
+        </Layout>
     );
 };
 

@@ -2,9 +2,10 @@
 
 import React, { useState, useContext } from 'react';
 import { useRouter } from 'next/navigation'; 
-import Link from 'next/link';import Link from 'next/link';                // Dùng cho thẻ Link bọc chữ/nút bấmimport Input from '../../components/Input';
-import { validEmail } from '../../utils/helper'; 
-import AuthLayout from "@/components/AuthLayout"
+import Link from 'next/link';
+import Input from '@/components/Input';
+import { validEmail } from '@/lib/helper'; // Nếu thư mục utils bạn đã đổi tên thành lib
+import AuthLayout from "@/layout/AuthLayout"; // Trỏ đúng vị trí bạn để AuthLayout
 import { API_PATH } from "@/lib/apiPath";
 import instance from "@/lib/instance";
 import { UserContext } from "@/context/userContext";
@@ -13,7 +14,10 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-        const router = useRouter();    const {updateUser} = useContext(UserContext);
+    
+    const router = useRouter();    
+    const {updateUser} = useContext(UserContext);
+    
     const handleLogin = async (e) => {
         e.preventDefault();
         setError(''); 
@@ -33,11 +37,10 @@ const Login = () => {
         try{
             const response = await instance.post(API_PATH.AUTH.LOGIN, { email, password });
             const {user,accessToken} = response.data.data;
-            console.log(user,accessToken);
             if(accessToken){
                 localStorage.setItem("token",accessToken);
                 updateUser(user);
-                navigate("/");
+                router.push("/"); // SỬA navigate thành router.push
             }
         }catch(error){
             if(error.response && error.response.data){
@@ -50,25 +53,14 @@ const Login = () => {
 
     return (
         <AuthLayout>
+            {/* Nội dung UI giữ nguyên không cần sửa */}
             <div className="w-full pt-8 flex justify-center">
               <div className="w-[60%] flex flex-col justify-center items-center bg-blue-50 rounded-2xl p-8 shadow-blue-200 shadow-lg">
                 <h3 className="text-2xl font-semibold text-black mb-4">Welcome</h3>
                 
                 <form onSubmit={handleLogin} className="w-full max-w-sm flex flex-col">
-                    <Input 
-                        value={email} 
-                        onChange={(e) => setEmail(e.target.value)} 
-                        placeholder="example@email.com"
-                        type="email" 
-                        label="Email Address"
-                    />
-                    <Input 
-                        value={password} 
-                        onChange={(e) => setPassword(e.target.value)} 
-                        placeholder="••••••••"
-                        type="password" 
-                        label="Password"
-                    />
+                    <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="example@email.com" type="email" label="Email Address"/>
+                    <Input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" type="password" label="Password"/>
 
                     {error && <p className="text-red-500 text-center text-sm">{error}</p>}
 
@@ -79,7 +71,7 @@ const Login = () => {
                     </div>
                 </form>
 
-                <Link to="/signup" className="text-blue-600 hover:underline mt-4 pt-1">
+                <Link href="/signup" className="text-blue-600 hover:underline mt-4 pt-1">
                     Don't have an account?
                 </Link> 
             </div>
