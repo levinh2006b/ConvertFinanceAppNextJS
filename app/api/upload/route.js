@@ -1,51 +1,47 @@
-import {v2 as cloudinary} from "cloudinary";
-import multer from "multer";
-import { CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_NAME } from "../../common/configs/environment.config.js";
-import handleAsync from "../../common/utils/handle-async.util.js";
-import { throwError } from "../../common/configs/error.config.js";
+import { NextResponse } from "next/server";
+import { v2 as cloudinary } from "cloudinary";
 
+// Cấu hình kết nối Cloudinary
 cloudinary.config({
-    cloud_name: CLOUDINARY_NAME,
-    api_key: CLOUDINARY_API_KEY,
-    api_secret: CLOUDINARY_API_SECRET,
+    cloud_name: process.env.CLOUDINARY_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const storage = multer.memoryStorage();
-export const upload = multer({
-    storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-});
+export async function POST(request) {
+    try {
+        // 1. Đọc file ảnh từ form gửi lên
+        const data = await request.formData();
+        const file = data.get("avatar"); // Ở FE bạn đang gửi file với tên field là 'avatar'
 
-export const uploadFile = handleAsync(async (req, res) => {
-    const file = req.file;
+        if (!file) {
+            return NextResponse.json({ message: "No file uploaded." }, { status: 400 });
+        }
 
-    if (!file) {
-        // Now this will work correctly
-        throwError(400, "No file uploaded.");
+        // 2. Biến file thành Buffer (chuỗi dữ liệu thô) để Next.js hiểu
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+
+        // 3. Đẩy thẳng Buffer lên Cloudinary bằng stream
+        const uploadResult = await new Promise((resolve, reject) => {
+            const uploadStream = cloudinary.uploader.upload_stream(
+                {
+                    resource_type: "auto",
+                    transformation: { width: 800, height: 800, crop: "fill", gravity: "auto" }
+                },
+                (error, result) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                }
+            );
+            uploadStream.end(buffer);
+        });
+
+        // 4. Trả về đường link ảnh thành công
+        return NextResponse.json({ message: "File uploaded successfully.", url: uploadResult.secure_url }, { status: 200 });
+
+    } catch (error) {
+        console.error("Upload Error:", error);
+        return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }
-
-    // Create a unique filename to prevent overwriting
-    const fileName = file.originalname.split('.')[0];
-    const uniqueFileName = `${fileName}-${Date.now()}`;
-
-    // Convert buffer to a Data URI
-    const dataUrl = `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
-
-    const result = await cloudinary.uploader.upload(dataUrl, {
-        public_id: uniqueFileName,
-        resource_type: "auto",
-		transformation: {
-            width: 800,         // Target width
-            height: 800,        // Target height (same as width for a square)
-            crop: "fill",       // Crop mode
-            gravity: "auto",    // Automatically focus on the most important part
-        },
-    });
-
-    res.status(200).json({
-        message: "File uploaded successfully.",
-        url: result.secure_url,
-    });
-});
-
-
+}
