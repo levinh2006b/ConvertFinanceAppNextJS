@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';                
 import { Upload, Image, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import Input from '@/components/Input';
-import { validEmail } from '@/lib/helper';
-import AuthLayout from '@/layout/AuthLayout';
-import { API_PATH } from '@/lib/apiPath';
-import instance from '@/lib/instance';
+import AuthLayout from "../layout";
+import Input from "@/components/Input";
+import instance from "@/lib/instance";
+import { API_PATH } from "@/lib/apiPath";
+
 
 const getBase64 = (file) =>
   new Promise((resolve, reject) => {
@@ -29,7 +29,7 @@ const SignUp = () => {
     const [previewImage, setPreviewImage] = useState('');
     const [fileList, setFileList] = useState([]);
 
-    const router = useRouter(); // SỬA ở đây
+    const router = useRouter(); 
 
     const handleSignUp = async (e) => {
         e.preventDefault();
@@ -40,28 +40,39 @@ const SignUp = () => {
         }
     
         try {
-            let profilePicUrl = null; 
+            let profilePicUrl = ""; 
 
-            const registerData = { username, email, password };
-    
-            const response = await instance.post(API_PATH.AUTH.REGISTER, registerData);
+            // 1. UPLOAD ẢNH TRƯỚC (NẾU CÓ CHỌN ẢNH)
             if (fileList && fileList.length > 0) {
                 const imgFile = fileList[0].originFileObj;
                 const formData = new FormData();
                 formData.append('avatar', imgFile);
     
+                // Gọi thẳng vào route /api/upload bạn đã tạo
+                // Dòng đang bị lỗi:
+                // Dòng đã sửa đúng:
                 const uploadResponse = await instance.post(
-                    API_PATH.UPLOAD.AVATAR,
+                    API_PATH.UPLOAD.AVATAR, 
                     formData,
                     { headers: { 'Content-Type': 'multipart/form-data' } }
                 );
                 profilePicUrl = uploadResponse.data.url;
             }
-            if(profilePicUrl){
-                await instance.put(API_PATH.AUTH.UPDATE_PROFILE, { id: response.data.data._id, profilePic: profilePicUrl });
-            }
+
+            // 2. GỘP DỮ LIỆU ĐĂNG KÝ VÀ LINK ẢNH
+            const registerData = { 
+                username, 
+                email, 
+                password,
+                profilePic: profilePicUrl 
+            };
+    
+            // 3. GỌI API TẠO TÀI KHOẢN (Chỉ 1 lần)
+            await instance.post(API_PATH.AUTH.REGISTER, registerData);
             
-            router.push('/login'); // SỬA navigate thành router.push
+            // 4. THÀNH CÔNG -> Chuyển hướng
+            message.success('Account created successfully!');
+            router.push('/login'); 
     
         } catch (error) {
             console.error("Registration failed:", error);
@@ -73,7 +84,6 @@ const SignUp = () => {
         }
     };
 
-    // ... (Giữ nguyên các hàm handlePreview, handleChange, beforeUpload, uploadButton y hệt cũ)
     const handlePreview = async (file) => {
         if (!file.url && !file.preview) {
             file.preview = await getBase64(file.originFileObj);

@@ -4,11 +4,11 @@ import React, { useState, useContext } from 'react';
 import { useRouter } from 'next/navigation'; 
 import Link from 'next/link';
 import Input from '@/components/Input';
-import { validEmail } from '@/lib/helper'; // Nếu thư mục utils bạn đã đổi tên thành lib
-import AuthLayout from "@/layout/AuthLayout"; // Trỏ đúng vị trí bạn để AuthLayout
-import { API_PATH } from "@/lib/apiPath";
-import instance from "@/lib/instance";
-import { UserContext } from "@/context/userContext";
+import { validEmail } from '@/lib/helper';
+import AuthLayout from "../layout";
+import { API_PATH } from '@/lib/apiPath';
+import instance from '@/lib/instance';
+import { UserContext } from '@/context/userContext';
 
 const Login = () => {
     const [email, setEmail] = useState('');

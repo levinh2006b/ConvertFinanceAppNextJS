@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
-
+import connectDB from '@/lib/database.config'; // Import kết nối DB
 // Cấu hình kết nối Cloudinary
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_NAME,
@@ -9,7 +9,9 @@ cloudinary.config({
 });
 
 export async function POST(request) {
+    console.log("Mã Secret Next.js đọc được là:", process.env.CLOUDINARY_API_SECRET);
     try {
+        await connectDB(); // BẮT BUỘC gọi hàm này đầu tiên
         // 1. Đọc file ảnh từ form gửi lên
         const data = await request.formData();
         const file = data.get("avatar"); // Ở FE bạn đang gửi file với tên field là 'avatar'

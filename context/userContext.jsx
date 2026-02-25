@@ -1,8 +1,8 @@
 "use client"
 
 import React, { createContext, useState, useEffect } from "react";
-import instance from "../utils/instance";
-import { API_PATH } from "../utils/apiPath";
+import instance from "@/lib/instance";
+import { API_PATH } from "@/lib/apiPath";
 
 export const UserContext = createContext();
 

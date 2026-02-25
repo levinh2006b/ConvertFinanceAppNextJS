@@ -1,5 +1,9 @@
 import mongoose from "mongoose";
-import { USER_ROLE } from "../../common/consts/user-role.js";
+
+const USER_ROLE = {
+    USER: "user",
+    ADMIN: "admin"
+};
 
 const userSchema = new mongoose.Schema({
     username: {type: String, required: true, unique: true},
@@ -16,6 +20,5 @@ const userSchema = new mongoose.Schema({
 });
 
 
-const User = mongoose.models.User || mongoose.model('User', UserSchema);
-
+const User = mongoose.models.User || mongoose.model('User', userSchema);
 export default User;
