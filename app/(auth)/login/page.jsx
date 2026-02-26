@@ -34,13 +34,20 @@ const Login = () => {
             setError('Password must be at least 6 characters long');
             return;
         }
-        try{
+       try{
             const response = await instance.post(API_PATH.AUTH.LOGIN, { email, password });
             const {user,accessToken} = response.data.data;
             if(accessToken){
+                // 1. Vẫn lưu vào localStorage để các thư viện khác (như Axios) dễ lấy
                 localStorage.setItem("token",accessToken);
+                
+                // 2. THÊM DÒNG NÀY ĐỂ LƯU VÀO COOKIE CHO MIDDLEWARE ĐỌC
+                // path=/ nghĩa là mọi trang web trong dự án đều đọc được cookie này
+                // max-age=2592000 là thời gian sống của cookie (30 ngày tính bằng giây)
+                document.cookie = `token=${accessToken}; path=/; max-age=2592000`; 
+
                 updateUser(user);
-                router.push("/"); // SỬA navigate thành router.push
+                router.push("/"); 
             }
         }catch(error){
             if(error.response && error.response.data){

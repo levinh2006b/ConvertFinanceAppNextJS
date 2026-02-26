@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/jwt.util';
 import { authGetInfoService } from '@/lib/auth.service';
+import connectDatabase from '@/lib/database.config';
 
 export async function GET(request) {
     try {
+        await connectDatabase();
         // 1. Kiểm tra JWT (Thay thế authMiddleware)
         const authHeader = request.headers.get('authorization');
         if (!authHeader || !authHeader.startsWith("Bearer ")) {

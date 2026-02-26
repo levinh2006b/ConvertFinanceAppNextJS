@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/jwt.util';
 import { getTransactionsByFilterService, createTransactionService } from '@/lib/transaction.service';
+import connectDatabase from '@/lib/database.config';
+
 
 // Xử lý Lấy danh sách (GET)
 export async function GET(request) {
     try {
+
+        await connectDatabase();
+        
         const authHeader = request.headers.get('authorization');
         if (!authHeader || !authHeader.startsWith("Bearer ")) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         const decoded = verifyToken(authHeader.split(" ")[1], process.env.JWT_SECRET);

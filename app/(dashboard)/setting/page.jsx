@@ -4,7 +4,7 @@ import { Tabs, Spin } from 'antd';
 import ProfileSettings from './ProfileSetting';
 import PasswordSettings from './PasswordSetting';
 import { useContext } from 'react';
-import { UserContext } from '../../context/userContext';
+import { UserContext } from '@/context/userContext';
 
 const Setting = () => {
     const { user, loading, updateUser } = useContext(UserContext);

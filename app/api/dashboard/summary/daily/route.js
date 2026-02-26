@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/jwt.util';
 import { getDailySummaryService } from '@/lib/dashboard.service';
+import connectDatabase from '@/lib/database.config'; // 1. Import
 
 export async function GET(request) {
     try {
+        await connectDatabase(); // 2. Gọi hàm
         // 1. Kiểm tra JWT
         const authHeader = request.headers.get('authorization');
         if (!authHeader || !authHeader.startsWith("Bearer ")) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });

@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/jwt.util';
 import { authChangePasswordService } from '@/lib/auth.service';
+import connectDatabase from '@/lib/database.config';
 
 export async function PUT(request) {
     try {
+        await connectDatabase();
         // 1. Kiểm tra JWT
         const authHeader = request.headers.get('authorization');
         if (!authHeader || !authHeader.startsWith("Bearer ")) {

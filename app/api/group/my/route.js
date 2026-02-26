@@ -1,17 +1,27 @@
 import { NextResponse } from 'next/server';
+import connectDatabase from '@/lib/database.config';
 import { verifyToken } from '@/lib/jwt.util';
 import { getMyGroupsService } from '@/lib/group.service';
 
 export async function GET(request) {
     try {
-        const authHeader = request.headers.get('authorization');
-        if (!authHeader || !authHeader.startsWith("Bearer ")) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        const decoded = verifyToken(authHeader.split(" ")[1], process.env.JWT_SECRET);
-        if (!decoded || decoded instanceof Error) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+        await connectDatabase(); 
 
+        // 1. Kiểm tra Token gửi lên
+        const authHeader = request.headers.get('authorization'); // Chữ a viết thường
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+        }
+        
+        // 2. Giải mã Token
+        const token = authHeader.split(' ')[1];
+        const decoded = verifyToken(token);
+        
+        // 3. Gọi Data
         const groups = await getMyGroupsService(decoded.id);
-        return NextResponse.json({ message: "Get my groups successfully", data: groups }, { status: 200 });
+        return NextResponse.json({ message: "Success", data: groups }, { status: 200 });
+
     } catch (error) {
-        return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+        return NextResponse.json({ message: "Lỗi Server" }, { status: 500 });
     }
 }

@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/jwt.util';
 import { getMyGroupService } from '@/lib/group.service';
+import connectDatabase from '@/lib/database.config'; // 1. Import
 
 // Nhận tham số động qua biến 'params'
 export async function GET(request, { params }) {
     try {
+        await connectDatabase(); // 2. Gọi hàm
         // 1. Kiểm tra JWT
         const authHeader = request.headers.get('authorization');
         if (!authHeader || !authHeader.startsWith("Bearer ")) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });

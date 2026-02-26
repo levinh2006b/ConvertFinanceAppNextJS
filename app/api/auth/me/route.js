@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { authGetInfoService } from '@/lib/auth.service';
 import { verifyToken } from '@/lib/jwt.util'; // Hàm verify token tự viết ở bước trước
+import connectDatabase from '@/lib/database.config';
 
 export async function GET(request) {
     try {
+        await connectDatabase();
         // Tự động kiểm tra Token (thay cho authMiddleware cũ)
         const authHeader = request.headers.get('authorization');
         if (!authHeader || !authHeader.startsWith("Bearer ")) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
